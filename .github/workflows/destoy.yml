@@ -7,7 +7,7 @@ env:
   AWS_REGION: ap-south-1
   ECR_REPO: glps-demo-ecr
   CLUSTER_NAME: glps-demo-eks-cluster
-  AWS_ACCOUNT_ID: $(aws sts get-caller-identity --query Account --output text)
+  AWS_ACCOUNT_ID: 471112932176
 
 jobs:
   destroy:

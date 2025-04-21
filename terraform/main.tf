@@ -27,7 +27,7 @@ resource "aws_route_table" "rt_custom" {
 
 resource "aws_route_table_association" "custom" {
     count = 2
-    subnet_id = aws_subnet.public_subnets[count.index].id
+    subnet_id = aws_subnet.public[count.index].id
     route_table_id = aws_route_table.rt_custom.id
 }
 
@@ -45,7 +45,7 @@ resource "aws_route_table" "rt_main1" {
 
 resource "aws_route_table_association" "main1" {
   count = 2
-  subnet_id = aws_subnet.private_subnets[count.index].id
+  subnet_id = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.rt_main1.id
 }
 
@@ -67,7 +67,7 @@ resource "aws_eip" "eip" {
 }
 
 resource "aws_nat_gateway" "nat" {
-  subnet_id = aws_subnet.public_subnets[0].id
+  subnet_id = aws_subnet.public[0].id
   allocation_id = aws_eip.eip.id  
 
   tags = {

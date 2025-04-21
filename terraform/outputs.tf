@@ -9,8 +9,3 @@ output "cluster_name" {
 output "cluster_endpoint" {
   value = aws_eks_cluster.eks.endpoint
 }
-
-output "kubeconfig" {
-  value = aws_eks_cluster.eks.kubeconfig[0].raw_kubeconfig
-  description = "Use this to configure kubectl access"
-}

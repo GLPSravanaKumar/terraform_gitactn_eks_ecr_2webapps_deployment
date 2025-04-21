@@ -1,33 +1,35 @@
-name: Terraform Destroy
+name: Destroy Infrastructure
 
 on:
-  workflow_dispatch:  # Manual trigger from GitHub Actions tab
+  workflow_dispatch:  # Allows manual trigger from GitHub Actions
+
 env:
-  WEB_IMAGE: 471112932176.dkr.ecr.ap-south-1.amazonaws.com/glps-demo-ecr:latest
+  AWS_REGION: ap-south-1
+  ECR_REPO: glps-demo-ecr
+  CLUSTER_NAME: glps-demo-eks-cluster
 
 jobs:
   destroy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.6.6  # Use your project's version
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-south-1
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Terraform Init
-        run: terraform init
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
 
-      - name: Terraform Destroy
-        run: terraform destroy -auto-approve
-        
+      - name: Terraform Init & Destroy
+        working-directory: ./terraform
+        run: |
+          terraform init
+          terraform destroy -auto-approve

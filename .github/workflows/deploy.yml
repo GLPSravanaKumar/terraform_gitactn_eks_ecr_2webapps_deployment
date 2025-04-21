@@ -50,6 +50,7 @@ jobs:
           terraform init
           terraform validate
           terraform apply -auto-approve -var="web_image=${WEB_IMAGE}"
+          terraform destroy -auto-approve -var="web_image=${WEB_IMAGE}"
       
       - name: Update Kubeconfig
         run: |

@@ -2,6 +2,8 @@ name: Terraform Destroy
 
 on:
   workflow_dispatch:  # Manual trigger from GitHub Actions tab
+env:
+  WEB_IMAGE: 471112932176.dkr.ecr.ap-south-1.amazonaws.com/glps-demo-ecr:latest
 
 jobs:
   destroy:
@@ -28,9 +30,4 @@ jobs:
 
       - name: Terraform Destroy
         run: terraform destroy -auto-approve -var="web_image=${{ env.WEB_IMAGE }}"
-        env:
-          AWS_REGION: ap-south-1
-          ECR_REPO: glps-demo-ecr
-          CLUSTER_NAME: glps-demo-eks-cluster
-          AWS_ACCOUNT_ID: 471112932176
-          WEB_IMAGE: 471112932176.dkr.ecr.ap-south-1.amazonaws.com/glps-demo-ecr:latest
+        

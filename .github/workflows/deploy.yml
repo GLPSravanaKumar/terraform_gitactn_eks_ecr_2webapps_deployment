@@ -1,7 +1,10 @@
-name: Destroy Infrastructure
+name: Deploy Static Web on EKS
 
 on:
-  workflow_dispatch:  # Allows manual trigger from GitHub Actions
+  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 env:
   AWS_REGION: ap-south-1
@@ -9,7 +12,7 @@ env:
   CLUSTER_NAME: glps-demo-eks-cluster
 
 jobs:
-  destroy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,13 +26,31 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Install Kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.29.0'
+
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.7.0
 
-      - name: Terraform Init & Destroy
+      - name: Build & Push Docker Images
+        run: |
+          chmod +x ./scripts/build_push_images.sh
+          ./scripts/build_push_images.sh
+          
+      - name: Set image URL for Terraform
+        run: echo "WEB_IMAGE=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:latest" >> $GITHUB_ENV
+
+      - name: Terraform Init & Apply
         working-directory: ./terraform
         run: |
           terraform init
-          terraform destroy -auto-approve
+          terraform validate
+          terraform apply -auto-approve -var="web_image=${WEB_IMAGE}"
+                
+      - name: Update Kubeconfig
+        run: |
+          aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME

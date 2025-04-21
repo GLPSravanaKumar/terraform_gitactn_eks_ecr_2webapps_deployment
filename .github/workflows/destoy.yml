@@ -29,5 +29,5 @@ jobs:
         run: terraform init
 
       - name: Terraform Destroy
-        run: terraform destroy -auto-approve -var="web_image=${{ env.WEB_IMAGE }}"
+        run: terraform destroy -auto-approve
         

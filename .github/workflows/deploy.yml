@@ -49,8 +49,7 @@ jobs:
         run: |
           terraform init
           terraform validate
-          terraform destroy -auto-approve -var="web_image=${WEB_IMAGE}"
-                
+          terraform destroy -auto-approve
       - name: Update Kubeconfig
         run: |
           aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME

@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - '.github/workflows/destroy.yml'
 
 env:
   AWS_REGION: ap-south-1

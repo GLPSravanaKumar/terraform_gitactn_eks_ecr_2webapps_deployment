@@ -26,7 +26,7 @@ resource "aws_route_table" "rt_custom" {
 }
 
 resource "aws_route_table_association" "custom" {
-    count = 2
+    count = length(var.public_subnet_cidrs)
     subnet_id = aws_subnet.public[count.index].id
     route_table_id = aws_route_table.rt_custom.id
 }
@@ -44,19 +44,11 @@ resource "aws_route_table" "rt_main1" {
 }
 
 resource "aws_route_table_association" "main1" {
-  count = 2
+  count = length(var.private_subnet_cidrs)
   subnet_id = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.rt_main1.id
 }
 
-resource "aws_route_table" "rt_main2" {
-  vpc_id = aws_vpc.main.id
-
-  tags ={
-    Name = "glps_eks_rt_db"
-  }
-
-}
 
 resource "aws_eip" "eip" {
   domain = "vpc"
@@ -108,6 +100,7 @@ resource "aws_subnet" "private" {
 
 data "aws_availability_zones" "available" {}
 
+
 resource "aws_eks_cluster" "eks" {
   name     = var.cluster_name
   role_arn = aws_iam_role.eks_cluster.arn
@@ -129,8 +122,8 @@ resource "aws_iam_role" "eks_cluster" {
 
 data "aws_iam_policy_document" "eks_assume_role" {
   statement {
-    actions = ["sts:AssumeRole"]
-
+    actions = ["sts:AssumeRole",
+              "sts:TagSession" ]
     principals {
       type        = "Service"
       identifiers = ["eks.amazonaws.com"]
@@ -143,6 +136,21 @@ resource "aws_iam_role_policy_attachment" "eks_AmazonEKSClusterPolicy" {
   role       = aws_iam_role.eks_cluster.name
 }
 
+resource "aws_iam_role_policy_attachment" "AmazonEKSComputePolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSComputePolicy"
+  role       = aws_iam_role.eks_cluster.name
+}
+
+resource "aws_iam_role_policy_attachment" "AmazonEKSLoadBalancingPolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSLoadBalancingPolicy"
+  role       = aws_iam_role.eks_cluster.name
+}
+
+resource "aws_iam_role_policy_attachment" "AmazonEKSNetworkingPolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSNetworkingPolicy"
+  role = aws_iam_role.eks_cluster.name
+}
+
 resource "aws_eks_node_group" "node_group" {
   cluster_name    = aws_eks_cluster.eks.name
   node_group_name = "${var.cluster_name}-node-group"
@@ -150,8 +158,8 @@ resource "aws_eks_node_group" "node_group" {
   subnet_ids      = aws_subnet.private[*].id
 
   scaling_config {
-    desired_size = 4
-    max_size     = 4
+    desired_size = 2
+    max_size     = 3
     min_size     = 1
   }
 
@@ -191,7 +199,7 @@ resource "aws_iam_role_policy_attachment" "node_AmazonEC2ContainerRegistryReadOn
 
 resource "kubernetes_deployment" "static_web" {
   metadata {
-    name = "static-web"
+    name = "static-web-deployment"
     labels = {
       app = "static-web"
     }
@@ -211,7 +219,7 @@ resource "kubernetes_deployment" "static_web" {
       }
       spec {
         container {
-          name  = "static-web"
+          name  = "static-web-container"
           image = var.web_image
           port {
             container_port = 80

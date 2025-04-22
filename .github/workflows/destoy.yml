@@ -28,8 +28,9 @@ jobs:
         with:
           terraform_version: 1.7.0
 
-      - name: Terraform Init & Destroy
+      - name: Terraform Destroy
         working-directory: ./terraform
         run: |
           terraform init
           terraform destroy -auto-approve
+          terraform destroy -auto-approve -var="web_image=${WEB_IMAGE}"

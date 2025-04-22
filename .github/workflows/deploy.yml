@@ -42,14 +42,15 @@ jobs:
           ./scripts/build_push_images.sh
           
       - name: Set image URL for Terraform
-        run: echo "WEB_IMAGE=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:latest" >> $GITHUB_ENV
+        run: echo "WEB_IMAGE=${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:latest" >> $GITHUB_ENV
 
       - name: Terraform Init & Apply
         working-directory: ./terraform
         run: |
           terraform init
           terraform validate
-          terraform destroy -auto-approve
+          terraform plan -var="web_image=${WEB_IMAGE}"
+          terraform apply -auto-approve -var="web_image=${WEB_IMAGE}"
       - name: Update Kubeconfig
         run: |
-          aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME
+          aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME}

@@ -4,6 +4,7 @@ variable "region" {
 
 variable "web_image" {
   description = "Docker image for the static web app"
+  type = string
 }
 
 variable "cluster_name" {

@@ -196,6 +196,12 @@ resource "aws_iam_role_policy_attachment" "node_AmazonEC2ContainerRegistryReadOn
   role       = aws_iam_role.node_group.name
 }
 
+resource "kubernetes_namespace" "webapps" {
+  metadata {
+    name = "webapps"
+  }
+}
+
 
 resource "kubernetes_deployment" "static_web" {
   metadata {

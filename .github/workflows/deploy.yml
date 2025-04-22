@@ -1,12 +1,11 @@
 name: Deploy Static Web on EKS
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
     paths-ignore:
-      - '.github/workflows/destroy.yml'
+      - '.github/workflows/destoy.yml'
 
 env:
   AWS_REGION: ap-south-1
@@ -14,15 +13,10 @@ env:
   CLUSTER_NAME: glps-demo-eks-cluster
 
 jobs:
-  deploy:
-    if: "!contains(github.event.head_commit.message, '[destroy]')"
-    ... 
-    
+  
   build-and-deploy:
     runs-on: ubuntu-latest
   
-  
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3

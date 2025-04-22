@@ -35,4 +35,4 @@ jobs:
           terraform init
           terraform plan -var="web_image=${WEB_IMAGE}"
           terraform destroy -auto-approve -var="web_image=${WEB_IMAGE}"
-          terraform destroy -auto-approve
+        

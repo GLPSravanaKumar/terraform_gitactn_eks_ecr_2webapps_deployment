@@ -2,8 +2,12 @@ name: Deploy Static Web on EKS
 
 on:
   workflow_dispatch:
-    
-
+    inputs:
+      action:
+        description: 'Choose action to perform apply or destroy'
+        required: true
+        default: "apply"
+        
 env:
   AWS_REGION: ap-south-1
   ECR_REPO: glps-demo-ecr
@@ -52,7 +56,20 @@ jobs:
             -backend-config="key=eks/terraform.tfstate"
           terraform validate
           terraform plan -var="web_image=${WEB_IMAGE}"
-          terraform apply -auto-approve -var="web_image=${WEB_IMAGE}"
+
+      - name: Execute Terraform Action
+        run: |
+          if [ "${{ github.event.inputs.action }}" == "destroy" ]; then
+            terraform destroy -auto-approve -var="web_image=${WEB_IMAGE}"
+          else
+            terraform apply -auto-approve -var="web_image=${WEB_IMAGE}"
+          fi
+        working-directory: ./terraform
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ap-south-1
+          
       - name: Update Kubeconfig
         run: |
           aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME}

@@ -56,6 +56,7 @@ jobs:
             -backend-config="key=eks/terraform.tfstate"
           terraform validate
           terraform plan -var="web_image=${WEB_IMAGE}"
+          terraform plan -var="web_image=${WEB_IMAGE}" -destroy
 
       - name: Execute Terraform Action
         run: |
@@ -69,7 +70,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ap-south-1
-          
+
       - name: Update Kubeconfig
         run: |
           aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME}

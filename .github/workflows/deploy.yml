@@ -47,7 +47,7 @@ jobs:
       - name: Set image URL for Terraform
         run: echo "WEB_IMAGE=${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:latest" >> $GITHUB_ENV
 
-      - name: Terraform Init & Apply
+      - name: Terraform Init & PLAN
         working-directory: ./terraform
         run: |
           terraform init \
@@ -55,9 +55,13 @@ jobs:
             -backend-config="region=ap-south-1" \
             -backend-config="key=eks/terraform.tfstate"
           terraform validate
-          terraform plan -var="web_image=${WEB_IMAGE}"
+          if [ "${{ github.event.inputs.action }}" == "destroy" ]; then
+            terraform plan -destroy -var="web_image=${WEB_IMAGE}"
+          else
+            terraform plan -var="web_image=${WEB_IMAGE}"
+          fi
 
-      - name: Execute Terraform Action
+      - name: Terraform Apply or Destroy
         run: |
           if [ "${{ github.event.inputs.action }}" == "destroy" ]; then
             terraform destroy -auto-approve -var="web_image=${WEB_IMAGE}"
@@ -71,5 +75,6 @@ jobs:
           AWS_DEFAULT_REGION: ap-south-1
 
       - name: Update Kubeconfig
+        if: ${{ github.event.inputs.action == 'apply' }} 
         run: |
           aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME}

@@ -1,6 +1,7 @@
 name: Deploy Static Web on EKS
 
 on:
+<<<<<<< HEAD
   workflow_dispatch:
     
 #  push:
@@ -8,6 +9,13 @@ on:
 #      - main
 #    paths-ignore:
 #      - '.github/workflows/destoy.yml'
+=======
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/workflows/destoy.yml'
+>>>>>>> c859116e0cd8a08e7de5fde783e7170e4f3c1886
 
 env:
   AWS_REGION: ap-south-1
@@ -51,10 +59,14 @@ jobs:
       - name: Terraform Init & Apply
         working-directory: ./terraform
         run: |
+<<<<<<< HEAD
           terraform init \
             -backend-config="bucket=glps-dev-backend-bucket" \
             -backend-config="region=ap-south-1" \
             -backend-config="key=eks/terraform.tfstate"
+=======
+          terraform init
+>>>>>>> c859116e0cd8a08e7de5fde783e7170e4f3c1886
           terraform validate
           terraform plan -var="web_image=${WEB_IMAGE}"
           terraform apply -auto-approve -var="web_image=${WEB_IMAGE}"

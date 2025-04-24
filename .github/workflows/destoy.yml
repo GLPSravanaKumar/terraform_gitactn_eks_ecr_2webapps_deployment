@@ -29,8 +29,8 @@ jobs:
         with:
           terraform_version: 1.7.0
 
-<<<<<<< HEAD
       - name: Terraform Init
+        working-directory: ./terraform
         run: | 
           terraform init \
             -backend-config="bucket=glps-dev-backend-bucket" \
@@ -45,12 +45,3 @@ jobs:
         working-directory: ./terraform
         run: |
           terraform destroy -auto-approve
-=======
-      - name: Terraform Destroy
-        working-directory: ./terraform
-        run: |
-          terraform init
-          terraform plan -var="web_image=${WEB_IMAGE}"
-          terraform destroy -auto-approve -var="web_image=${WEB_IMAGE}"
-        
->>>>>>> c859116e0cd8a08e7de5fde783e7170e4f3c1886

@@ -28,6 +28,18 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.7.0
+      
+      - name: Terraform INIT
+        working-directory: ./terraform
+        run: |
+          terraform init -migrate-state \
+            -backend-config="bucket=glps-dev-backend-bucket" \
+            -backend-config="region=ap-south-1" \
+            -backend-config="key=eks/terraform.tfstate"
+          env:
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            AWS_DEFAULT_REGION: ap-south-1   
 
       - name: Terraform Destroy
         working-directory: ./terraform

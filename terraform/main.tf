@@ -17,7 +17,7 @@ resource "aws_internet_gateway_attachment" "igw_attac" {
    vpc_id = aws_vpc.main.id
    internet_gateway_id = aws_internet_gateway.igw.id
    lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }
 

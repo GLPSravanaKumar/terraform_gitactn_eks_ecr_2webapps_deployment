@@ -56,7 +56,6 @@ jobs:
             -backend-config="key=eks/terraform.tfstate"
           terraform validate
           terraform plan -var="web_image=${WEB_IMAGE}"
-          terraform plan -var="web_image=${WEB_IMAGE}" -destroy
 
       - name: Execute Terraform Action
         run: |

@@ -65,11 +65,6 @@ jobs:
             terraform plan -var="web_image1=${WEB_IMAGE1}" -var="web_image2=${WEB_IMAGE2}"
           fi
 
-      - name: Update Kubeconfig
-        if: ${{ github.event.inputs.action == 'apply' }} 
-        run: |
-          aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME}   
-
       - name: Terraform Apply or Destroy
         run: |
           if [ "${{ github.event.inputs.action }}" == "destroy" ]; then
@@ -83,4 +78,8 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ap-south-1
 
+      - name: Update Kubeconfig
+        if: ${{ github.event.inputs.action == 'apply' }} 
+        run: |
+          aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME} 
       

@@ -71,13 +71,7 @@ jobs:
           terraform validate
           terraform plan -var="web_image1=${WEB_IMAGE1}" -var="web_image2=${WEB_IMAGE2}"
 
-      - name: Update Kubeconfig
-        run: |
-          aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME} 
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ap-south-1  
+        
 
       - name: Terraform Apply or Destroy
         run: |
@@ -92,5 +86,12 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ap-south-1
 
-      
+      - name: Update Kubeconfig
+        run: |
+          aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME} 
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ap-south-1 
+        
       

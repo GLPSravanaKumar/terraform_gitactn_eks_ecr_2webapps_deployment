@@ -2,8 +2,12 @@ variable "region" {
   default = "ap-south-1"
 }
 
-variable "web_image" {
-  description = "Docker image for the static web app"
+variable "web_image1" {
+  description = "Docker image for the static web app1"
+  type = string
+}
+variable "web_image2" {
+  description = "Docker image for the static web app2"
   type = string
 }
 

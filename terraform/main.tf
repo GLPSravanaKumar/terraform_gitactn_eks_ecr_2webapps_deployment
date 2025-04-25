@@ -216,26 +216,26 @@ resource "kubernetes_deployment" "webapp1" {
     namespace = kubernetes_namespace.webapp1.metadata[0].name
     name = "glps-webapp1-deployment"
     labels = {
-      webapp1.kubernetes.io/name = "amazon"
+      "webapp1.kubernetes.io/name" = "amazon"
     }
   }
   spec {
     replicas = 1
     selector {
       match_labels = {
-        webapp1.kubernetes.io/name = "amazon"
+        "webapp1.kubernetes.io/name" = "amazon"
       }
     }
     template {
       metadata {
         labels = {
-          webapp1.kubernetes.io/name = "amazon"
+          "webapp1.kubernetes.io/name" = "amazon"
         }
       }
       spec {
         container {
           name  = "glps-webapp1-container"
-          image = var.web_image
+          image = var.web_image1
           port {
             container_port = 80
           }
@@ -252,7 +252,7 @@ resource "kubernetes_service" "webapp1" {
   }
   spec {
     selector = {
-      webapp1.kubernetes.io/name = "amazon"
+      "webapp1.kubernetes.io/name" = "amazon"
     }
     port {
       port        = 80
@@ -269,26 +269,26 @@ resource "kubernetes_deployment" "webapp2" {
     namespace = kubernetes_namespace.webapp1.metadata[0].name
     name = "glps-webapp2-deployment"
     labels = {
-      webapp2.kubernetes.io/name = "Gvrkprasad"
+      "webapp2.kubernetes.io/name" = "Gvrkprasad"
     }
   }
   spec {
     replicas = 1
     selector {
       match_labels = {
-        webapp2.kubernetes.io/name = "Gvrkprasad"
+        "webapp2.kubernetes.io/name" = "Gvrkprasad"
       }
     }
     template {
       metadata {
         labels = {
-          webapp2.kubernetes.io/name = "Gvrkprasad"
+          "webapp2.kubernetes.io/name" = "Gvrkprasad"
         }
       }
       spec {
         container {
           name  = "glps-webapp2-container"
-          image = var.web_image
+          image = var.web_image2
           port {
             container_port = 80
           }
@@ -305,7 +305,7 @@ resource "kubernetes_service" "webapp2" {
   }
   spec {
     selector = {
-      webapp2.kubernetes.io/name = "Gvrkprasad"
+      "webapp2.kubernetes.io/name" = "Gvrkprasad"
     }
     port {
       port        = 80
@@ -320,7 +320,7 @@ resource "kubernetes_ingress_v1" "webapp1" {
     namespace = kubernetes_namespace.webapp1.metadata[0].name
     name = "glps-ingress"
     annotations = {
-      "kubernetes.io/ingress.class"                      = "alb"
+      "kubernetes.io/ingress.class"                     = "alb"
       "alb.ingress.kubernetes.io/scheme"                = "internet-facing"
       "alb.ingress.kubernetes.io/target-type"           = "ip"
       "alb.ingress.kubernetes.io/group.name"            = "shared-lb"

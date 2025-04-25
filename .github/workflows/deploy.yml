@@ -1,4 +1,4 @@
-name: Deploy Static Web on EKS
+name: Deploy Webapp on EKS
 
 on:
   workflow_dispatch:

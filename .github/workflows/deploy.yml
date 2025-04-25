@@ -55,6 +55,14 @@ jobs:
           echo "WEB_IMAGE1=${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO1}:latest" >> $GITHUB_ENV
           echo "WEB_IMAGE2=${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO2}:latest" >> $GITHUB_ENV
       
+      - name: Update Kubeconfig
+        run: |
+          aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME} 
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ap-south-1
+      
       - name: Terraform Init & PLAN
         working-directory: ./terraform
         run: |
@@ -62,7 +70,13 @@ jobs:
             -backend-config="bucket=glps-dev-backend-bucket" \
             -backend-config="region=ap-south-1" \
             -backend-config="key=eks/terraform.tfstate"
+          
+      - name: Terraform Validate & Plan
+        working-directory: ./terraform
+        run: |
           terraform validate
+          terraform fmt -check
+          terraform plan -var="web_image1=${WEB_IMAGE1}" -var="web_image2=${WEB_IMAGE2}"
           
       - name: Terraform Apply or Destroy
         run: |
@@ -77,12 +91,5 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ap-south-1
 
-      - name: Update Kubeconfig
-        if: ${{ github.event.inputs.action == 'apply' }} 
-        run: |
-          aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME} 
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ap-south-1
+      
       

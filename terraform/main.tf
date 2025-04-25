@@ -167,7 +167,7 @@ resource "aws_eks_node_group" "node_group" {
 
   scaling_config {
     desired_size = 2
-    max_size     = 3
+    max_size     = 4
     min_size     = 1
   }
 
@@ -220,7 +220,7 @@ resource "kubernetes_deployment" "webapp1" {
     }
   }
   spec {
-    replicas = 1
+    replicas = 2
     selector {
       match_labels = {
         "webapp1.kubernetes.io/name" = "amazon"
@@ -274,7 +274,7 @@ resource "kubernetes_deployment" "webapp2" {
     }
   }
   spec {
-    replicas = 1
+    replicas = 2
     selector {
       match_labels = {
         "webapp2.kubernetes.io/name" = "Gvrkprasad"

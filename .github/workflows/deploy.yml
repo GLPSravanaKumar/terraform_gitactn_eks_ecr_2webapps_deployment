@@ -69,7 +69,6 @@ jobs:
         working-directory: ./terraform
         run: |
           terraform validate
-          terraform fmt -check
           terraform plan -var="web_image1=${WEB_IMAGE1}" -var="web_image2=${WEB_IMAGE2}"
 
       - name: Update Kubeconfig

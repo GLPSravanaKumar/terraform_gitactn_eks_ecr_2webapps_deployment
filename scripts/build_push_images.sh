@@ -13,11 +13,11 @@ aws ecr describe-repositories --repository-names $REPO_NAME1 || aws ecr create-r
 aws ecr describe-repositories --repository-names $REPO_NAME2 || aws ecr create-repository --repository-name $REPO_NAME2
 
 # Build and Push webapp1 image
-docker build -t $REPO_NAME1 ./website
+docker build -t $REPO_NAME1 ./webapp1
 docker tag $REPO_NAME1:latest $AWS_ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO_NAME1:latest
 docker push $AWS_ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO_NAME1:latest
 
 # Build and Push webapp2 image
-docker build -t $REPO_NAME2 ./website
+docker build -t $REPO_NAME2 ./webapp2
 docker tag $REPO_NAME2:latest $AWS_ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO_NAME2:latest
 docker push $AWS_ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO_NAME2:latest

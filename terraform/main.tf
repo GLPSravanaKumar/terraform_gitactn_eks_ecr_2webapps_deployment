@@ -236,6 +236,7 @@ resource "kubernetes_deployment" "webapp1" {
         container {
           name  = "glps-webapp1-container"
           image = var.web_image1
+          image_pull_policy = "Always"
           port {
             container_port = 80
           }
@@ -289,6 +290,7 @@ resource "kubernetes_deployment" "webapp2" {
         container {
           name  = "glps-webapp2-container"
           image = var.web_image2
+          image_pull_policy = "Always"
           port {
             container_port = 80
           }

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terraform Directory Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .directory {
+            margin-left: 20px;
+        }
+        .file {
+            margin-left: 40px;
+            cursor: pointer;
+            color: blue;
+            text-decoration: underline;
+        }
+        .file:hover {
+            text-decoration: none;
+        }
+        pre {
+            background-color: #f4f4f4;
+            border: 1px solid #ddd;
+            padding: 10px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Terraform Directory Viewer</h1>
+    <div id="directory-viewer"></div>
+    <div id="file-content">
+        <h2>File Content</h2>
+        <pre id="content-area">Click on a file to view its content.</pre>
+    </div>
+
+    <script>
+        // Simulated directory structure and file content
+        const directoryData = {
+            "terraform_aws_e2_pub_module": {
+                "modules": {
+                    "ec2_instance": {
+                        "workflows": {},
+                        "examples": {},
+                        "complete": {},
+                        "session-manager": {},
+                        "volume-attachment": {},
+                        "wrappers": {}
+                    }
+                }
+            },
+            "terraform_aws_three_tier_with_module_concept": {
+                "modules": {
+                    "compute": {
+                        "main.tf": "Content of compute/main.tf",
+                        "variables.tf": "Content of compute/variables.tf"
+                    },
+                    "database": {
+                        "main.tf": "Content of database/main.tf",
+                        "variables.tf": "Content of database/variables.tf"
+                    },
+                    "loadbalancer": {
+                        "main.tf": "Content of loadbalancer/main.tf",
+                        "variables.tf": "Content of loadbalancer/variables.tf"
+                    },
+                    "s3_bucket": {},
+                    "security": {},
+                    "vpc": {}
+                }
+            }
+        };
+
+        // Generate HTML structure for directories and files
+        function generateDirectoryHTML(directory, parent = "") {
+            let html = "<ul>";
+            for (const key in directory) {
+                if (typeof directory[key] === "object") {
+                    html += `<li><span class="directory">${key}</span>${generateDirectoryHTML(directory[key], `${parent}/${key}`)}</li>`;
+                } else {
+                    html += `<li><span class="file" onclick="showFileContent('${parent}/${key}')">${key}</span></li>`;
+                }
+            }
+            html += "</ul>";
+            return html;
+        }
+
+        // Display file content
+        function showFileContent(filePath) {
+            const fileParts = filePath.split("/").slice(1);
+            let content = directoryData;
+            fileParts.forEach(part => {
+                content = content[part];
+            });
+            document.getElementById("content-area").textContent = content || "File is empty or content not available.";
+        }
+
+        // Initialize directory viewer
+        document.getElementById("directory-viewer").innerHTML = generateDirectoryHTML(directoryData);
+    </script>
+</body>
+</html>

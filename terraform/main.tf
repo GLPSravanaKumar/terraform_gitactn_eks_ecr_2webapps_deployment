@@ -204,36 +204,37 @@ resource "aws_iam_role_policy_attachment" "node_AmazonEC2ContainerRegistryReadOn
   role       = aws_iam_role.node_group.name
 }
 
-resource "kubernetes_namespace" "webapps" {
+resource "kubernetes_namespace" "webapp1" {
   metadata {
-    name = "webapps"
+    name = "glps-namespace"
   }
 }
 
 
-resource "kubernetes_deployment" "static_web" {
+resource "kubernetes_deployment" "webapp1" {
   metadata {
-    name = "static-web-deployment"
+    namespace = kubernetes_namespace.webapp1.metadata[0].name
+    name = "glps-webapp1-deployment"
     labels = {
-      app = "static-web"
+      webapp1.kubernetes.io/name = "amazon"
     }
   }
   spec {
-    replicas = 2
+    replicas = 1
     selector {
       match_labels = {
-        app = "static-web"
+        webapp1.kubernetes.io/name = "amazon"
       }
     }
     template {
       metadata {
         labels = {
-          app = "static-web"
+          webapp1.kubernetes.io/name = "amazon"
         }
       }
       spec {
         container {
-          name  = "static-web-container"
+          name  = "glps-webapp1-container"
           image = var.web_image
           port {
             container_port = 80
@@ -244,18 +245,148 @@ resource "kubernetes_deployment" "static_web" {
   }
 }
 
-resource "kubernetes_service" "static_web_service" {
+resource "kubernetes_service" "webapp1" {
   metadata {
-    name = "static-web-service"
+    namespace = kubernetes_namespace.webapp1.metadata[0].name
+    name = "glps-webapp1-service"
   }
   spec {
     selector = {
-      app = "static-web"
+      webapp1.kubernetes.io/name = "amazon"
     }
     port {
       port        = 80
       target_port = 80
     }
-    type = "LoadBalancer"
+    type = "NodePort"
+  }
+}
+
+
+
+resource "kubernetes_deployment" "webapp2" {
+  metadata {
+    namespace = kubernetes_namespace.webapp1.metadata[0].name
+    name = "glps-webapp2-deployment"
+    labels = {
+      webapp2.kubernetes.io/name = "Gvrkprasad"
+    }
+  }
+  spec {
+    replicas = 1
+    selector {
+      match_labels = {
+        webapp2.kubernetes.io/name = "Gvrkprasad"
+      }
+    }
+    template {
+      metadata {
+        labels = {
+          webapp2.kubernetes.io/name = "Gvrkprasad"
+        }
+      }
+      spec {
+        container {
+          name  = "glps-webapp2-container"
+          image = var.web_image
+          port {
+            container_port = 80
+          }
+        }
+      }
+    }
+  }
+}
+
+resource "kubernetes_service" "webapp2" {
+  metadata {
+    namespace = kubernetes_namespace.webapp1.metadata[0].name
+    name = "glps-webapp2-service"
+  }
+  spec {
+    selector = {
+      webapp2.kubernetes.io/name = "Gvrkprasad"
+    }
+    port {
+      port        = 80
+      target_port = 80
+    }
+    type = "NodePort"
+  }
+}
+
+resource "kubernetes_ingress_v1" "webapp1" {
+  metadata {
+    namespace = kubernetes_namespace.webapp1.metadata[0].name
+    name = "glps-ingress"
+    annotations = {
+      "kubernetes.io/ingress.class"                      = "alb"
+      "alb.ingress.kubernetes.io/scheme"                = "internet-facing"
+      "alb.ingress.kubernetes.io/target-type"           = "ip"
+      "alb.ingress.kubernetes.io/group.name"            = "shared-lb"
+    }
+  }
+
+  spec {
+    rule {
+      http {
+        path {
+          path     = "/app1"
+          path_type = "Prefix"
+          backend {
+            service {
+              name = kubernetes_service.webapp1.metadata[0].name
+              port {
+                number = 80
+              }
+            }
+          }
+        }
+        path {
+          path     = "/app2"
+          path_type = "Prefix"
+          backend {
+            service {
+              name = kubernetes_service.webapp2.metadata[0].name
+              port {
+                number = 80
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+resource "helm_release" "aws_load_balancer_controller" {
+  name       = "aws-load-balancer-controller"
+  namespace  = "kube-system"
+  repository = "https://aws.github.io/eks-charts"
+  chart      = "aws-load-balancer-controller"
+
+  set {
+    name  = "clusterName"
+    value = var.cluster_name
+  }
+
+  set {
+    name  = "region"
+    value = var.region
+  }
+
+  set {
+    name  = "vpcId"
+    value = aws_vpc.main.id
+  }
+
+  set {
+    name  = "serviceAccount.create"
+    value = "false"
+  }
+
+  set {
+    name  = "serviceAccount.name"
+    value = "aws-load-balancer-controller"
   }
 }

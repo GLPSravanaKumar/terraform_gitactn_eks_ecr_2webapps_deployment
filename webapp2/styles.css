@@ -1,0 +1,356 @@
+/* General Styles */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    scroll-behavior: smooth;
+}
+
+.navbar {
+    background: #1c1b1b;
+    color: #4b4949;
+    padding: 1rem 0;
+    position: sticky; /* Keeps the navbar fixed at the top */
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow for better visibility */
+    
+}
+
+.navbar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.navbar .nav-links {
+    list-style: none;
+    display: flex;
+}
+
+.navbar .nav-links li {
+    margin: 0 15px;
+}
+
+.navbar .nav-links a {
+    color: #fff;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.navbar .nav-links a:hover {
+    color: #f4a261;
+}
+
+/* Hero Section */
+#hero {
+    background-color: rgb(66, 49, 28);
+    color: #fff;
+    height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+}
+
+#hero .btn {
+    background: #f4a261;
+    color: #fff;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-top: 15px;
+    transition: background 0.3s;
+}
+
+#hero .btn:hover {
+    background: #e76f51;
+}
+
+/* Content Container */
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Steps Section */
+.steps {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.step {
+    background: #f4f4f4;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    flex: 1 1 30%;
+    margin: 15px;
+    padding: 20px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Footer */
+footer {
+    background: #333;
+    color: #fff;
+    text-align: center;
+    padding: 20px 0;
+}
+
+/* Add spacing below navbar */
+body > *:not(.navbar) {
+    margin-top: 80px; /* Adjust based on the height of the navbar */
+}
+/* General body styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #282c34;
+    color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+}
+
+/* Ensuring the viewport meta tag works */
+meta[name="viewport"] {
+    content: "width=device-width, initial-scale=1.0";
+}
+
+/* Section Styling */
+.section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap; /* Allow sections to wrap in smaller screens */
+    padding: 40px;
+    border-bottom: 1px solid #565555;
+    margin: 0 auto;
+}
+
+.section:nth-child(even) {
+    flex-direction: row-reverse;
+    background-color: #565555;
+}
+
+.section img {
+    width: 150px;
+    height: auto;
+    margin: 20px;
+}
+
+/* Content container inside sections */
+.content {
+    max-width: 600px;
+    padding: 20px;
+}
+
+/* Ensuring the header is mobile-friendly */
+header img {
+    width: 100%; /* Full width */
+    height: auto;
+    display: block; /* Remove extra space below image */
+}
+
+/* Styling the card layout */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.card {
+    background-color: #1e222a;
+    border: 1px solid #444;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+.card img {
+    width: 80px;
+    height: auto;
+    margin-bottom: 15px;
+}
+
+.card h3 {
+    color: #61dafb;
+}
+
+.card p {
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.card a {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 15px;
+    background-color: #61dafb;
+    color: #282c34;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.card a:hover {
+    background-color: #21a1f1;
+}
+
+/* Footer Styles */
+footer {
+    text-align: center;
+    padding: 20px;
+    background-color: #1e222a;
+    color: #aaa;
+}
+
+/* Header - Navbar adjustments for smaller screens */
+nav .navbar-nav {
+    text-align: center;
+}
+
+nav .navbar-nav .nav-link {
+    padding: 10px;
+}
+
+@media (max-width: 768px) {
+    /* Adjusting the header for smaller screens */
+    header img {
+        width: 100%;
+    }
+
+    /* Adjust section content for small screens */
+    .section {
+        flex-direction: column; /* Stack the image and content vertically */
+        align-items: center;
+        padding: 20px;
+    }
+
+    .content {
+        text-align: center;
+    }
+
+    /* Adjust card layout */
+    .grid-container {
+        grid-template-columns: 1fr 1fr; /* Two cards per row on smaller screens */
+        padding: 20px;
+    }
+
+    /* Adjust card text sizes */
+    .card h3 {
+        font-size: 1.2rem;
+    }
+
+    .card p {
+        font-size: 0.9rem;
+    }
+
+    .navbar-toggler {
+        background-color: #61dafb;
+    }
+
+    /* Footer adjustments */
+    footer {
+        font-size: 0.8rem;
+    }
+
+    footer .fa {
+        font-size: 18px;
+    }
+}
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.content {
+    display: flex;
+    margin-top: 20px;
+}
+
+.script-list {
+    width: 20%;
+    background-color: #f8f9fa;
+    border-right: 1px solid #ddd;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.script-list h5 {
+    text-align: center;
+}
+
+.script-list ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.script-list li {
+    margin: 10px 0;
+}
+
+.script-list a {
+    text-decoration: none;
+    color: #007bff;
+    cursor: pointer;
+}
+
+.script-content {
+    flex: 1;
+    padding: 2rem;
+}
+
+pre {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+header img {
+    width: 100%;
+    /* Makes the image take up the full width of its container */
+    height: auto;
+    /* Maintains the aspect ratio */
+    display: block;
+    /* Prevents unexpected spacing below the image */
+}
+footer i {
+font-size: 24px;
+}
+
+footer a {
+    text-decoration: none;
+}
+
+footer a:hover {
+    opacity: 0.8;
+}
+.sidebar a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: #61dafb;
+}
+
+.sidebar a img {
+    margin-right: 10px;
+    width: 20px;
+    height: 20px;
+}

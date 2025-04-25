@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Sidebar Website</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #282c34;
+            color: #f5f5f5;
+        }
+
+        header img {
+            width: 100%;
+            height: auto;
+        }
+
+        .navbar {
+            margin-bottom: 0;
+        }
+
+        .main-container {
+            display: flex;
+            flex-wrap: wrap;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            flex: 0 0 250px;
+            background-color: #1e222a;
+            color: #f5f5f5;
+            padding: 20px;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .sidebar a {
+            display: block;
+            color: #61dafb;
+            text-decoration: none;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar a:hover {
+            background-color: #282c34;
+        }
+
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #282c34;
+        }
+
+        .content h2 {
+            color: #61dafb;
+        }
+
+        footer {
+            background-color: #1e222a;
+            color: #aaa;
+            text-align: center;
+            padding: 20px;
+        }
+
+        footer a {
+            color: #61dafb;
+            margin: 0 10px;
+            font-size: 1.5rem;
+            transition: color 0.3s;
+        }
+
+        footer a:hover {
+            color: #21a1f1;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                flex: 0 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="ttd2.jpg" alt="Header Image">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">Welcome to GVRK Prasad Blog</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item"><a class="nav-link" href="About.html">About</a></li>
+                        <li class="nav-item"><a class="nav-link" href="aws.html">AWS</a></li>
+                        <li class="nav-item"><a class="nav-link" href="Shell Scripts.html">Shell Scripts</a></li>
+                        <li class="nav-item"><a class="nav-link" href="User Data Scripts.html">User Data</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#package-setup">Linux/Ubuntu Commands</a></li>
+                        <li class="nav-item"><a class="nav-link" href="Documents.html">Documents</a></li>
+                        <li class="nav-item"><a class="nav-link" href="Projects.html">Projects</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <a href="aws.html" onclick="loadContent('AWS Content')">
+                <img src="aws.png" alt="AWS Logo" style="width: 20px; height: 20px; margin-right: 10px;"> AWS
+            </a>
+            <a href="azure.html" onclick="loadContent('Azure Content')">
+                <img src="azuree.png" alt="Azure Logo" style="width: 20px; height: 20px; margin-right: 10px;"> Azure
+            </a>
+            <a href="google.html" onclick="loadContent('Google Cloud Content')">
+                <img src="gcp.png" alt="Google Cloud Logo" style="width: 20px; height: 20px; margin-right: 10px;"> Google Cloud
+            </a>
+            <a href="#devops" onclick="loadContent('DevOps Tools Content')">
+                <img src="jenkins.jpg" alt="DevOps Logo" style="width: 20px; height: 20px; margin-right: 10px;"> DevOps
+            </a>
+        </aside>
+        <main class="content" id="mainContent">
+            <h2>Welcome</h2>
+            <p>Select an option from the sidebar to view content here.</p>
+        </main>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Govindarajula LP Sravana Kumar</p>
+        <div>
+            <a href="https://www.facebook.com/glps369" target="_blank"><i class="fab fa-facebook-f"></i></a>
+            <a href="https://twitter.com/glps369" target="_blank"><i class="fab fa-twitter"></i></a>
+            <a href="https://github.com/GLPSravanaKumar" target="_blank"><i class="fab fa-github"></i></a>
+            <a href="https://hub.docker.com" target="_blank"><i class="fab fa-docker"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        function loadContent(content) {
+            document.getElementById('mainContent').innerHTML = `
+                <h2>${content}</h2>
+                <p>This is the content for ${content}. Add more details as needed.</p>
+            `;
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

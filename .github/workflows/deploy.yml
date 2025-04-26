@@ -7,10 +7,7 @@ on:
         description: 'Choose action to perform apply or destroy'
         required: true
         default: "apply"
-        type: choice
-        options:
-          - apply
-          - destroy
+        
         
 env:
   AWS_REGION: ap-south-1
@@ -79,7 +76,7 @@ jobs:
 
       - name: Terraform Apply or Destroy
         run: |
-          if [ "${{ github.event.inputs.action.options }}" == "destroy" ]; then
+          if [ "${{ github.event.inputs.action }}" == "destroy" ]; then
             terraform destroy -auto-approve -var="web_image1=${WEB_IMAGE1}" -var="web_image2=${WEB_IMAGE2}"
           else
             terraform apply -auto-approve -var="web_image1=${WEB_IMAGE1}" -var="web_image2=${WEB_IMAGE2}"

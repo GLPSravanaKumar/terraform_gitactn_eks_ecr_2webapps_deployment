@@ -527,8 +527,8 @@ resource "helm_release" "aws_load_balancer_controller" {
   namespace  = "kube-system"
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
-  depends_on = [aws_iam_openid_connect_provider.oidc_provider,
-                kubernetes_namespace.webapp1,
+  depends_on = [
+    aws_iam_openid_connect_provider.oidc_provider,
                 aws_iam_role.alb_sa_iam_role
   ]
 

@@ -401,18 +401,20 @@ data "aws_iam_policy_document" "alb_sa_assume_role" {
 
     principals {
       type        = "Federated"
-      identifiers = [data.aws_iam_openid_connect_provider.oidc_provider.arn]
+      identifiers = [aws_iam_openid_connect_provider.oidc_provider.arn]
     }
 
     condition {
       test     = "StringEquals"
-      variable = "${replace(data.aws_iam_openid_connect_provider.oidc_provider.url, "https://", "")}:sub"
+      variable = "${replace(resource.aws_iam_openid_connect_provider.oidc_provider.url, "https://", "")}:sub"
       values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"]
     }
   }
 }
 
-data "aws_iam_openid_connect_provider" "oidc_provider" {
+resource "aws_iam_openid_connect_provider" "oidc_provider" {
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = ["9e99a48a9960b14926bb7f3b02e22da0ecd4e3c1"]  # default EKS thumbprint for ap-south-1
   url = aws_eks_cluster.eks.identity[0].oidc[0].issuer
   depends_on = [ aws_eks_cluster.eks ]
 }
@@ -438,6 +440,7 @@ resource "helm_release" "aws_load_balancer_controller" {
   namespace  = "kube-system"
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
+  depends_on = [aws_iam_openid_connect_provider.oidc_provider]
 
   set {
     name  = "clusterName"

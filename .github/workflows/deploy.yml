@@ -9,6 +9,7 @@ on:
         default: "apply"
         
         
+        
 env:
   AWS_REGION: ap-south-1
   ECR_REPO1: glps-webpp1-repo

@@ -91,7 +91,7 @@ resource "aws_subnet" "public" {
   tags = {
     Name                                        = "${var.cluster_name}-public-${count.index}"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-    "kubernetes.io/role/elb"                    = "1"
+    "kubernetes.io/role/elb"                    = "true"
   }
 }
 
@@ -104,7 +104,7 @@ resource "aws_subnet" "private" {
   tags = {
     Name                                        = "${var.cluster_name}-private-${count.index}"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-    "kubernetes.io/role/internal-elb"           = "1"
+    "kubernetes.io/role/internal-elb"           = "true"
   }
 }
 

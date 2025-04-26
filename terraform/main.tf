@@ -212,7 +212,7 @@ resource "kubernetes_namespace" "webapp1" {
   metadata {
     name = "glps-namespace"
   }
-  depends_on = [aws_eks_cluster.eks]
+#  depends_on = [aws_eks_cluster.eks]
 }
 
 

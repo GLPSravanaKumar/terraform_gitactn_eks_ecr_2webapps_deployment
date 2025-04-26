@@ -414,6 +414,7 @@ data "aws_iam_policy_document" "alb_sa_assume_role" {
 
 data "aws_iam_openid_connect_provider" "oidc_provider" {
   url = aws_eks_cluster.eks.identity[0].oidc[0].issuer
+  depends_on = [ aws_eks_cluster.eks ]
 }
 
 resource "aws_iam_role_policy_attachment" "alb_controller_attach" {

@@ -26,18 +26,42 @@ data "aws_eks_cluster" "eks" {
   depends_on = [ aws_eks_cluster.eks ]
 }
 
+# 2. Fetch EKS cluster auth informatio
+data "aws_eks_cluster_auth" "eks" {
+  name = var.cluster_name
+  depends_on = [ aws_eks_cluster.eks ]
+}
+
 # 3. Kubernetes provider
+#provider "kubernetes" {
+#  host                   = data.aws_eks_cluster.eks.endpoint
+#  cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
+#  token                  = data.aws_eks_cluster_auth.eks.token
+# }
+
+# Add to provider.tf or main.tf
 provider "kubernetes" {
-  host                   = data.aws_eks_cluster.eks.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
-  token                  = ephemeral.aws_eks_cluster_auth.eks.token
- }
+  host                   = aws_eks_cluster.eks.endpoint
+  cluster_ca_certificate = base64decode(aws_eks_cluster.eks.certificate_authority[0].data)
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    args = [
+      "eks",
+      "get-token",
+      "--cluster-name",
+      aws_eks_cluster.eks.name,
+      "--region",
+      var.region
+    ]
+  }
+}
 
 # 4. Helm provider
 provider "helm" {
   kubernetes {
     host                   = data.aws_eks_cluster.eks.endpoint
     cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
-    token                  = ephemeral.aws_eks_cluster_auth.eks.token
+    token                  = data.aws_eks_cluster_auth.eks.token
   }
 }

@@ -18,6 +18,86 @@ resource "aws_vpc" "main" {
 
 data "aws_availability_zones" "available" {}
 
+# security_groups.tf
+resource "aws_security_group" "eks_cluster" {
+  name        = "${var.cluster_name}-cluster-sg"
+  description = "Cluster communication with worker nodes"
+  vpc_id      = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.cluster_name}-cluster-sg"
+  }
+}
+
+resource "aws_security_group_rule" "cluster_inbound" {
+  description              = "Allow worker nodes to communicate with cluster"
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.eks_cluster.id
+  source_security_group_id = aws_security_group.eks_nodes.id
+  type                     = "ingress"
+}
+
+resource "aws_security_group_rule" "cluster_outbound" {
+  description              = "Allow cluster to communicate with worker nodes"
+  from_port                = 1024
+  to_port                  = 65535
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.eks_cluster.id
+  source_security_group_id = aws_security_group.eks_nodes.id
+  type                     = "egress"
+}
+
+resource "aws_security_group" "eks_nodes" {
+  name        = "${var.cluster_name}-node-sg"
+  description = "Security group for all nodes in the cluster"
+  vpc_id      = aws_vpc.main.id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.cluster_name}-node-sg"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+  }
+}
+
+resource "aws_security_group" "alb" {
+  name        = "${var.cluster_name}-alb-sg"
+  description = "Security group for ALB"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.cluster_name}-alb-sg"
+  }
+}
+
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
   lifecycle {
@@ -106,11 +186,6 @@ resource "aws_subnet" "private" {
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     "kubernetes.io/role/internal-elb"           = "true"
   }
-}
-
-ephemeral "aws_eks_cluster_auth" "eks" {
-  name = var.cluster_name
-  depends_on = [ aws_eks_cluster.eks ]
 }
 
   resource "aws_eks_cluster" "eks" {
@@ -217,7 +292,10 @@ resource "kubernetes_namespace" "webapp1" {
   metadata {
     name = "glps-namespace"
   }
-#  depends_on = [aws_eks_cluster.eks]
+  depends_on = [
+    aws_eks_cluster.eks,
+    aws_eks_node_group.node_group
+    ]
 }
 
 
@@ -359,10 +437,12 @@ resource "kubernetes_ingress_v1" "webapp1" {
       "alb.ingress.kubernetes.io/scheme"                = "internet-facing"
       "alb.ingress.kubernetes.io/target-type"           = "ip"
       "alb.ingress.kubernetes.io/group.name"            = "shared-lb"
+      "alb.ingress.kubernetes.io/listen-ports"          = "[{\"HTTP\": 80}]"
     }
   }
 
   spec {
+    ingress_class_name = "alb"
     rule {
       http {
         path {
@@ -394,10 +474,7 @@ resource "kubernetes_ingress_v1" "webapp1" {
   }
 }
 
-resource "aws_iam_role" "alb_sa_iam_role" {
-  name = "AmazonEKSLoadBalancerControllerRole"
-  assume_role_policy = data.aws_iam_policy_document.alb_sa_assume_role.json
-}
+
 
 data "aws_iam_policy_document" "alb_sa_assume_role" {
   statement {
@@ -417,16 +494,21 @@ data "aws_iam_policy_document" "alb_sa_assume_role" {
   }
 }
 
-resource "aws_iam_openid_connect_provider" "oidc_provider" {
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = ["9e99a48a9960b14926bb7f3b02e22da0ecd4e3c1"]  # default EKS thumbprint for ap-south-1
-  url = aws_eks_cluster.eks.identity[0].oidc[0].issuer
-  depends_on = [ aws_eks_cluster.eks ]
+resource "aws_iam_role" "alb_sa_iam_role" {
+  name = "AmazonEKSLoadBalancerControllerRole"
+  assume_role_policy = data.aws_iam_policy_document.alb_sa_assume_role.json
 }
 
 resource "aws_iam_role_policy_attachment" "alb_controller_attach" {
   role       = aws_iam_role.alb_sa_iam_role.name
   policy_arn = "arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess"
+}
+
+resource "aws_iam_openid_connect_provider" "oidc_provider" {
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = ["9e99a48a9960b14926bb7f3b02e22da0ecd4e3c1"]  # default EKS thumbprint for ap-south-1
+  url = aws_eks_cluster.eks.identity[0].oidc[0].issuer
+  depends_on = [ aws_eks_cluster.eks ]
 }
 
 resource "kubernetes_service_account" "alb_controller_sa" {
@@ -446,7 +528,8 @@ resource "helm_release" "aws_load_balancer_controller" {
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
   depends_on = [aws_iam_openid_connect_provider.oidc_provider,
-                kubernetes_namespace.webapp1
+                kubernetes_namespace.webapp1,
+                aws_iam_role.alb_sa_iam_role
   ]
 
   set {
@@ -466,7 +549,7 @@ resource "helm_release" "aws_load_balancer_controller" {
 
   set {
     name  = "serviceAccount.create"
-    value = "false"
+    value = "true"
   }
 
   set {

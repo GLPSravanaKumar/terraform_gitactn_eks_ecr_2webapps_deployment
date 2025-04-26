@@ -213,6 +213,7 @@ resource "kubernetes_namespace" "webapp1" {
   metadata {
     name = "glps-namespace"
   }
+  depends_on = [aws_eks_cluster.eks]
 }
 
 
@@ -440,7 +441,9 @@ resource "helm_release" "aws_load_balancer_controller" {
   namespace  = "kube-system"
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
-  depends_on = [aws_iam_openid_connect_provider.oidc_provider]
+  depends_on = [aws_iam_openid_connect_provider.oidc_provider,
+                kubernetes_namespace.webapp1
+  ]
 
   set {
     name  = "clusterName"

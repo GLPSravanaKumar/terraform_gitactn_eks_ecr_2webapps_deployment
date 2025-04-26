@@ -7,6 +7,18 @@ terraform {
   }
 }
 
+
+resource "aws_vpc" "main" {
+  cidr_block = var.vpc_cidr
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+  tags = {
+    Name = "${var.cluster_name}-vpc"
+  }
+}
+
+data "aws_availability_zones" "available" {}
+
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
   lifecycle {
@@ -71,14 +83,6 @@ resource "aws_nat_gateway" "nat" {
   }
 }
 
-resource "aws_vpc" "main" {
-  cidr_block = var.vpc_cidr
-  enable_dns_hostnames = true
-  enable_dns_support   = true
-  tags = {
-    Name = "${var.cluster_name}-vpc"
-  }
-}
 
 resource "aws_subnet" "public" {
   count = length(var.public_subnet_cidrs)
@@ -106,7 +110,7 @@ resource "aws_subnet" "private" {
   }
 }
 
-data "aws_availability_zones" "available" {}
+
 
 
 resource "aws_eks_cluster" "eks" {
@@ -219,7 +223,7 @@ resource "kubernetes_namespace" "webapp1" {
 
 resource "kubernetes_deployment" "webapp1" {
   metadata {
-    namespace = kubernetes_namespace.webapp1.metadata[0].name
+    namespace = kubernetes_namespace.webapp1.metadata.name
     name = "glps-webapp1-deployment"
     labels = {
       "webapp1" = "amazon"
@@ -264,7 +268,7 @@ resource "kubernetes_deployment" "webapp1" {
 
 resource "kubernetes_service" "webapp1" {
   metadata {
-    namespace = kubernetes_namespace.webapp1.metadata[0].name
+    namespace = kubernetes_namespace.webapp1.metadata.name
     name = "glps-webapp1-service"
   }
   spec {
@@ -407,7 +411,7 @@ data "aws_iam_policy_document" "alb_sa_assume_role" {
 
     condition {
       test     = "StringEquals"
-      variable = "${replace(resource.aws_iam_openid_connect_provider.oidc_provider.url, "https://", "")}:sub"
+      variable = "${replace(aws_iam_openid_connect_provider.oidc_provider.url, "https://", "")}:sub"
       values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"]
     }
   }

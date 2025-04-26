@@ -288,6 +288,20 @@ resource "aws_iam_role_policy_attachment" "node_AmazonEC2ContainerRegistryReadOn
   role       = aws_iam_role.node_group.name
 }
 
+resource "kubernetes_service_account" "alb_controller_sa" {
+  metadata {
+    name      = "aws-load-balancer-controller"
+    namespace = "kube-system"
+   
+    annotations = {
+      "eks.amazonaws.com/role-arn" = aws_iam_role.alb_sa_iam_role.arn
+    }
+  }
+  automount_service_account_token = true
+  depends_on = [ aws_eks_cluster.eks ]
+}
+
+
 resource "kubernetes_namespace" "webapp1" {
   metadata {
     name = "glps-namespace"
@@ -511,15 +525,7 @@ resource "aws_iam_openid_connect_provider" "oidc_provider" {
   depends_on = [ aws_eks_cluster.eks ]
 }
 
-resource "kubernetes_service_account" "alb_controller_sa" {
-  metadata {
-    name      = "aws-load-balancer-controller"
-    namespace = "kube-system"
-    annotations = {
-      "eks.amazonaws.com/role-arn" = aws_iam_role.alb_sa_iam_role.arn
-    }
-  }
-}
+
 
 
 resource "helm_release" "aws_load_balancer_controller" {
@@ -529,7 +535,8 @@ resource "helm_release" "aws_load_balancer_controller" {
   chart      = "aws-load-balancer-controller"
   depends_on = [
     aws_iam_openid_connect_provider.oidc_provider,
-                aws_iam_role.alb_sa_iam_role
+                aws_iam_role.alb_sa_iam_role,
+                kubernetes_service_account.alb_controller_sa
   ]
 
   set {
@@ -549,7 +556,7 @@ resource "helm_release" "aws_load_balancer_controller" {
 
   set {
     name  = "serviceAccount.create"
-    value = "true"
+    value = "false"
   }
 
   set {

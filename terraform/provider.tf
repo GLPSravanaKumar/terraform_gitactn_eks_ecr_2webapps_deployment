@@ -27,7 +27,7 @@ data "aws_eks_cluster" "eks" {
 }
 
 # 2. Fetch EKS cluster authentication token
-data "aws_eks_cluster_auth" "eks" {
+ephemeral "aws_eks_cluster_auth" "eks" {
   name = var.cluster_name
   depends_on = [ aws_eks_cluster.eks ]
 }
@@ -36,7 +36,7 @@ data "aws_eks_cluster_auth" "eks" {
 provider "kubernetes" {
   host                   = data.aws_eks_cluster.eks.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
-  token                  = data.aws_eks_cluster_auth.eks.token
+  token                  = ephemeral.aws_eks_cluster_auth.eks.token
  }
 
 # 4. Helm provider
@@ -44,6 +44,6 @@ provider "helm" {
   kubernetes {
     host                   = data.aws_eks_cluster.eks.endpoint
     cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
-    token                  = data.aws_eks_cluster_auth.eks.token
+    token                  = ephemeral.aws_eks_cluster_auth.eks.token
   }
 }

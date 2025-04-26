@@ -108,19 +108,19 @@ resource "aws_subnet" "private" {
   }
 }
 
-resource "aws_eks_cluster" "eks" {
-  name     = var.cluster_name
-  role_arn = aws_iam_role.eks_cluster.arn
+  resource "aws_eks_cluster" "eks" {
+    name     = var.cluster_name
+    role_arn = aws_iam_role.eks_cluster.arn
 
-  vpc_config {
-    subnet_ids = concat(
-      aws_subnet.public[*].id,
-      aws_subnet.private[*].id
-    )
+    vpc_config {
+      subnet_ids = concat(
+        aws_subnet.public[*].id,
+        aws_subnet.private[*].id
+      )
+    }
+
+    depends_on = [aws_iam_role_policy_attachment.eks_AmazonEKSClusterPolicy]
   }
-
-  depends_on = [aws_iam_role_policy_attachment.eks_AmazonEKSClusterPolicy]
-}
 
 resource "aws_iam_role" "eks_cluster" {
   name = "${var.cluster_name}-eks-cluster-role"

@@ -8,19 +8,19 @@ on:
         required: true
         default: "apply"
         
-        
-        
 env:
   AWS_REGION: ap-south-1
   ECR_REPO1: glps-webpp1-repo
   ECR_REPO2: glps-webpp2-repo
   CLUSTER_NAME: glps-demo-eks-cluster
 
-jobs:
-  
+jobs:  
   build-and-deploy:
     runs-on: ubuntu-latest
-  
+    permissions:
+      contents: read
+      id-token: write
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -32,32 +32,25 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Install Kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: 'v1.29.0'
-
-      - name: Install Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.7.0
-      
-      - name: Install Helm
+      - name: Install Required Tools
         uses: azure/setup-helm@v3
         with:
           version: 'v3.14.0'
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
 
       - name: Build & Push Docker Images
         run: |
           chmod +x ./scripts/build_push_images.sh
           ./scripts/build_push_images.sh
           
-      - name: Set webapp1 & webapp2 images URL for Terraform
+      - name: Set image URLs
         run: |
           echo "WEB_IMAGE1=${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO1}:latest" >> $GITHUB_ENV
           echo "WEB_IMAGE2=${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO2}:latest" >> $GITHUB_ENV
-      
-      
       
       - name: Terraform Init
         working-directory: ./terraform
@@ -73,27 +66,37 @@ jobs:
           terraform validate
           terraform plan -var="web_image1=${WEB_IMAGE1}" -var="web_image2=${WEB_IMAGE2}"
 
-        
-
-      - name: Terraform Apply or Destroy
+      - name: Apply/Destroy Infrastructure
+        working-directory: ./terraform
         run: |
           if [ "${{ github.event.inputs.action }}" == "destroy" ]; then
             terraform destroy -auto-approve -var="web_image1=${WEB_IMAGE1}" -var="web_image2=${WEB_IMAGE2}"
           else
+            # Apply base infrastructure first
+            terraform apply -auto-approve -target=aws_eks_cluster.eks -var="web_image1=${WEB_IMAGE1}" -var="web_image2=${WEB_IMAGE2}"
+            
+            # Wait for cluster to become active
+            aws eks wait cluster-active \
+              --name ${CLUSTER_NAME} \
+              --region ${AWS_REGION}
+            
+            # Apply remaining resources
             terraform apply -auto-approve -var="web_image1=${WEB_IMAGE1}" -var="web_image2=${WEB_IMAGE2}"
           fi
-        working-directory: ./terraform
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ap-south-1
 
-      - name: Update Kubeconfig
+      - name: Configure Kubernetes Access
         run: |
-          aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME} 
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ap-south-1 
-        
-      
+          aws eks update-kubeconfig \
+            --name ${CLUSTER_NAME} \
+            --region ${AWS_REGION}
+          
+          # Verify cluster access
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Verify ALB Controller
+        run: |
+          kubectl wait deployment \
+            -n kube-system aws-load-balancer-controller \
+            --for condition=Available=True \
+            --timeout=300s

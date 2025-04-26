@@ -536,7 +536,8 @@ resource "helm_release" "aws_load_balancer_controller" {
   depends_on = [
     aws_iam_openid_connect_provider.oidc_provider,
                 aws_iam_role.alb_sa_iam_role,
-                kubernetes_service_account.alb_controller_sa
+                kubernetes_service_account.alb_controller_sa,
+                aws_eks_cluster.eks
   ]
 
   set {

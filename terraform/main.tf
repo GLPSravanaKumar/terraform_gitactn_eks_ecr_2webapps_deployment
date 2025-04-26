@@ -108,6 +108,11 @@ resource "aws_subnet" "private" {
   }
 }
 
+ephemeral "aws_eks_cluster_auth" "eks" {
+  name = var.cluster_name
+  depends_on = [ aws_eks_cluster.eks ]
+}
+
   resource "aws_eks_cluster" "eks" {
     name     = var.cluster_name
     role_arn = aws_iam_role.eks_cluster.arn

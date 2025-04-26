@@ -26,12 +26,6 @@ data "aws_eks_cluster" "eks" {
   depends_on = [ aws_eks_cluster.eks ]
 }
 
-# 2. Fetch EKS cluster authentication token
-ephemeral "aws_eks_cluster_auth" "eks" {
-  name = var.cluster_name
-  depends_on = [ aws_eks_cluster.eks ]
-}
-
 # 3. Kubernetes provider
 provider "kubernetes" {
   host                   = data.aws_eks_cluster.eks.endpoint

@@ -3,21 +3,17 @@ terraform {
     bucket         = "glps-dev-backend-bucket"
     key            = "eks/terraform.tfstate"
     region         = "ap-south-1"
+    encrypt        = true
   }
 }
 
 resource "aws_internet_gateway" "igw" {
- 
+  vpc_id = aws_vpc.main.id
+  lifecycle {
+    prevent_destroy = false
+  }
   tags = {
     Name = "glps_eks_igw"
-  }
-}
-
-resource "aws_internet_gateway_attachment" "igw_attac" {
-   vpc_id = aws_vpc.main.id
-   internet_gateway_id = aws_internet_gateway.igw.id
-   lifecycle {
-    prevent_destroy = false
   }
 }
 
@@ -91,7 +87,9 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
   availability_zone = element(data.aws_availability_zones.available.names, count.index)
   tags = {
-    Name = "${var.cluster_name}-public-${count.index}"
+    Name                                        = "${var.cluster_name}-public-${count.index}"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    "kubernetes.io/role/elb"                    = "1"
   }
 }
 
@@ -102,7 +100,9 @@ resource "aws_subnet" "private" {
   map_public_ip_on_launch = false
   availability_zone = element(data.aws_availability_zones.available.names, count.index)
   tags = {
-    Name = "${var.cluster_name}-private-${count.index}"
+    Name                                        = "${var.cluster_name}-private-${count.index}"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    "kubernetes.io/role/internal-elb"           = "1"
   }
 }
 
@@ -171,7 +171,12 @@ resource "aws_eks_node_group" "node_group" {
     min_size     = 1
   }
 
-  depends_on = [aws_iam_role_policy_attachment.node_AmazonEKSWorkerNodePolicy]
+  depends_on = [
+    aws_iam_role_policy_attachment.node_AmazonEKSWorkerNodePolicy,
+    aws_iam_role_policy_attachment.node_AmazonEKS_CNI_Policy,
+    aws_iam_role_policy_attachment.node_AmazonEC2ContainerRegistryReadOnly,
+    helm_release.aws_load_balancer_controller
+    ]
 }
 
 resource "aws_iam_role" "node_group" {
@@ -216,20 +221,20 @@ resource "kubernetes_deployment" "webapp1" {
     namespace = kubernetes_namespace.webapp1.metadata[0].name
     name = "glps-webapp1-deployment"
     labels = {
-      "webapp1.kubernetes.io/name" = "amazon"
+      "webapp1" = "amazon"
     }
   }
   spec {
     replicas = 2
     selector {
       match_labels = {
-        "webapp1.kubernetes.io/name" = "amazon"
+        "webapp1" = "amazon"
       }
     }
     template {
       metadata {
         labels = {
-          "webapp1.kubernetes.io/name" = "amazon"
+          "webapp1" = "amazon"
         }
       }
       spec {
@@ -239,6 +244,16 @@ resource "kubernetes_deployment" "webapp1" {
           image_pull_policy = "Always"
           port {
             container_port = 80
+          }
+          resources {
+            limits = {
+              cpu    = "500m"
+              memory = "512Mi"
+            }
+            requests = {
+              cpu    = "250m"
+              memory = "256Mi"
+            }
           }
         }
       }
@@ -253,9 +268,11 @@ resource "kubernetes_service" "webapp1" {
   }
   spec {
     selector = {
-      "webapp1.kubernetes.io/name" = "amazon"
+      "webapp1" = "amazon"
     }
     port {
+      name        = "http"
+      protocol    = "TCP"
       port        = 80
       target_port = 80
     }
@@ -264,26 +281,25 @@ resource "kubernetes_service" "webapp1" {
 }
 
 
-
 resource "kubernetes_deployment" "webapp2" {
   metadata {
     namespace = kubernetes_namespace.webapp1.metadata[0].name
     name = "glps-webapp2-deployment"
     labels = {
-      "webapp2.kubernetes.io/name" = "Gvrkprasad"
+      "webapp2" = "Gvrkprasad"
     }
   }
   spec {
     replicas = 2
     selector {
       match_labels = {
-        "webapp2.kubernetes.io/name" = "Gvrkprasad"
+        "webapp2" = "Gvrkprasad"
       }
     }
     template {
       metadata {
         labels = {
-          "webapp2.kubernetes.io/name" = "Gvrkprasad"
+          "webapp2" = "Gvrkprasad"
         }
       }
       spec {
@@ -293,6 +309,16 @@ resource "kubernetes_deployment" "webapp2" {
           image_pull_policy = "Always"
           port {
             container_port = 80
+          }
+          resources {
+            limits = {
+              cpu    = "500m"
+              memory = "512Mi"
+            }
+            requests = {
+              cpu    = "250m"
+              memory = "256Mi"
+            }
           }
         }
       }
@@ -307,9 +333,11 @@ resource "kubernetes_service" "webapp2" {
   }
   spec {
     selector = {
-      "webapp2.kubernetes.io/name" = "Gvrkprasad"
+      "webapp2" = "Gvrkprasad"
     }
     port {
+      name        = "http"
+      protocol    = "TCP"
       port        = 80
       target_port = 80
     }
@@ -322,7 +350,7 @@ resource "kubernetes_ingress_v1" "webapp1" {
     namespace = kubernetes_namespace.webapp1.metadata[0].name
     name = "glps-ingress"
     annotations = {
-      "kubernetes.io/ingress.class"                     = "alb"
+      "alb.ingress.kubernetes.io/ingress.class"         = "alb"
       "alb.ingress.kubernetes.io/scheme"                = "internet-facing"
       "alb.ingress.kubernetes.io/target-type"           = "ip"
       "alb.ingress.kubernetes.io/group.name"            = "shared-lb"
@@ -360,6 +388,49 @@ resource "kubernetes_ingress_v1" "webapp1" {
     }
   }
 }
+
+resource "aws_iam_role" "alb_sa_iam_role" {
+  name = "AmazonEKSLoadBalancerControllerRole"
+  assume_role_policy = data.aws_iam_policy_document.alb_sa_assume_role.json
+}
+
+data "aws_iam_policy_document" "alb_sa_assume_role" {
+  statement {
+    effect = "Allow"
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    principals {
+      type        = "Federated"
+      identifiers = [data.aws_iam_openid_connect_provider.oidc_provider.arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(data.aws_iam_openid_connect_provider.oidc_provider.url, "https://", "")}:sub"
+      values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"]
+    }
+  }
+}
+
+data "aws_iam_openid_connect_provider" "oidc_provider" {
+  url = aws_eks_cluster.eks.identity[0].oidc[0].issuer
+}
+
+resource "aws_iam_role_policy_attachment" "alb_controller_attach" {
+  role       = aws_iam_role.alb_sa_iam_role.name
+  policy_arn = "arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess"
+}
+
+resource "kubernetes_service_account" "alb_controller_sa" {
+  metadata {
+    name      = "aws-load-balancer-controller"
+    namespace = "kube-system"
+    annotations = {
+      "eks.amazonaws.com/role-arn" = aws_iam_role.alb_sa_iam_role.arn
+    }
+  }
+}
+
 
 resource "helm_release" "aws_load_balancer_controller" {
   name       = "aws-load-balancer-controller"

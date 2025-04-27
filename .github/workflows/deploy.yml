@@ -73,7 +73,7 @@ jobs:
             terraform destroy -auto-approve -var="web_image1=${WEB_IMAGE1}" -var="web_image2=${WEB_IMAGE2}"
           else
             # Apply base infrastructure first
-            terraform apply -auto-approve -target=aws_eks_cluster.eks -var="web_image1=${WEB_IMAGE1}" -var="web_image2=${WEB_IMAGE2}"
+            terraform apply -auto-approve -var="web_image1=${WEB_IMAGE1}" -var="web_image2=${WEB_IMAGE2}"
             
             # Wait for cluster to become active
             aws eks wait cluster-active \

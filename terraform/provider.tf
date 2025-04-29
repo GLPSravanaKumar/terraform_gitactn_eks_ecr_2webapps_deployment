@@ -33,12 +33,9 @@ data "aws_eks_cluster_auth" "eks" {
   name = aws_eks_cluster.eks.name
 }
 
-# 3. Kubernetes provider
-#provider "kubernetes" {
-#  host                   = data.aws_eks_cluster.eks.endpoint
-#  cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
-#  token                  = data.aws_eks_cluster_auth.eks.token
-# }
+data "tls_certificate" "oidc_thumbprint" {
+  url = data.aws_eks_cluster.eks.identity[0].oidc[0].issuer
+}
 
 # Add to provider.tf or main.tf
 provider "kubernetes" {
@@ -47,5 +44,12 @@ provider "kubernetes" {
   token                  = data.aws_eks_cluster_auth.eks.token
 }
 
+provider "helm" {
+  kubernetes {
+    host                   = data.aws_eks_cluster.eks.endpoint
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
+    token                  = data.aws_eks_cluster_auth.eks.token
+  }
+}
 
 

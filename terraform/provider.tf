@@ -25,12 +25,12 @@ provider "aws" {
 
 # 1. Fetch EKS cluster information
 data "aws_eks_cluster" "eks" {
-  name = var.cluster_name
+  name = aws_eks_cluster.eks.name
 }
 
 # 2. Fetch EKS cluster auth informatio
 data "aws_eks_cluster_auth" "eks" {
-  name = var.cluster_name
+  name = aws_eks_cluster.eks.name
 }
 
 # 3. Kubernetes provider

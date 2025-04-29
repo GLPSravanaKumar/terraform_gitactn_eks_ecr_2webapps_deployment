@@ -268,6 +268,7 @@ resource "kubernetes_service" "webapp1" {
     }
     type = "NodePort"
   }
+  depends_on = [ kubernetes_deployment.webapp1]
 }
 
 
@@ -333,6 +334,7 @@ resource "kubernetes_service" "webapp2" {
     }
     type = "NodePort"
   }
+  depends_on = [ kubernetes_deployment.webapp2] 
 }
 
 

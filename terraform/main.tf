@@ -349,7 +349,7 @@ resource "aws_iam_openid_connect_provider" "oidc" {
 
 resource "aws_iam_policy" "alb_controller_policy" {
   name   = "AWSLoadBalancerControllerIAMPolicy"
-  policy = file("${path.cwd}/iam_policy_alb_controller.json")
+  policy = file("${path.root}/terraform/iam_policy_alb_controller.json")
 }
 
 resource "aws_iam_role" "alb_controller" {
@@ -360,15 +360,20 @@ resource "aws_iam_role" "alb_controller" {
       Action = "sts:AssumeRoleWithWebIdentity",
       Effect = "Allow",
       Principal = {
-        Federated = aws_iam_openid_connect_provider.oidc.arn
+        Federated = data.aws_iam_openid_connect_provider.oidc.arn
       },
       Condition = {
         StringEquals = {
-          "${replace(aws_eks_cluster.eks.identity[0].oidc[0].issuer, "https://", "")}:sub" = "system:serviceaccount:kube-system:aws-load-balancer-controller"
+          "${replace(data.aws_iam_openid_connect_provider.oidc.url, "https://", "")}:sub" = "system:serviceaccount:kube-system:aws-load-balancer-controller"
         }
       }
     }]
   })
+}
+
+resource "aws_iam_role_policy_attachment" "alb_controller_attach" {
+  policy_arn = aws_iam_policy.alb_controller_policy.arn
+  role       = aws_iam_role.alb_controller.name
 }
 
 resource "kubernetes_service_account" "alb_sa" {
@@ -381,10 +386,6 @@ resource "kubernetes_service_account" "alb_sa" {
   }
 }
 
-resource "aws_iam_role_policy_attachment" "alb_controller_attach" {
-  policy_arn = aws_iam_policy.alb_controller_policy.arn
-  role       = aws_iam_role.alb_controller.name
-}
 
 resource "helm_release" "alb_controller" {
   name       = "aws-load-balancer-controller"

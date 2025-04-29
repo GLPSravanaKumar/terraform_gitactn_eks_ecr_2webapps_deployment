@@ -37,6 +37,10 @@ data "tls_certificate" "oidc_thumbprint" {
   url = data.aws_eks_cluster.eks.identity[0].oidc[0].issuer
 }
 
+data "aws_iam_openid_connect_provider" "oidc" {
+  url = data.aws_eks_cluster.eks.identity[0].oidc[0].issuer
+}
+
 # Add to provider.tf or main.tf
 provider "kubernetes" {
   host                   = data.aws_eks_cluster.eks.endpoint

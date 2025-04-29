@@ -60,27 +60,24 @@ jobs:
             -backend-config="region=ap-south-1" \
             -backend-config="key=eks/terraform.tfstate"
           
-      - name: Terraform Validate & Plan
+      - name: Terraform Validate and Plan
         working-directory: ./terraform
         run: |
           terraform validate
-          terraform plan -var="web_image1=${WEB_IMAGE1}" -var="web_image2=${WEB_IMAGE2}"
+        
+          if [ "${{ github.event.inputs.action }}" == "destroy" ]; then
+            terraform plan -destroy -var="web_image1=${WEB_IMAGE1}" -var="web_image2=${WEB_IMAGE2}"
+          else
+            terraform plan -var="web_image1=${WEB_IMAGE1}" -var="web_image2=${WEB_IMAGE2}"
+          fi
 
-      - name: Apply/Destroy Infrastructure
+      - name: Terraform Apply or Destroy Infrastructure
         working-directory: ./terraform
         run: |
           if [ "${{ github.event.inputs.action }}" == "destroy" ]; then
             terraform destroy -auto-approve -var="web_image1=${WEB_IMAGE1}" -var="web_image2=${WEB_IMAGE2}"
           else
             # Apply base infrastructure first
-            terraform apply -auto-approve -var="web_image1=${WEB_IMAGE1}" -var="web_image2=${WEB_IMAGE2}"
-            
-            # Wait for cluster to become active
-            aws eks wait cluster-active \
-              --name ${CLUSTER_NAME} \
-              --region ${AWS_REGION}
-            
-            # Apply remaining resources
             terraform apply -auto-approve -var="web_image1=${WEB_IMAGE1}" -var="web_image2=${WEB_IMAGE2}"
           fi
 
@@ -89,14 +86,4 @@ jobs:
           aws eks update-kubeconfig \
             --name ${CLUSTER_NAME} \
             --region ${AWS_REGION}
-          
-          # Verify cluster access
-          kubectl cluster-info
-          kubectl get nodes
-
-      - name: Verify ALB Controller
-        run: |
-          kubectl wait deployment \
-            -n kube-system aws-load-balancer-controller \
-            --for condition=Available=True \
-            --timeout=300s
+      

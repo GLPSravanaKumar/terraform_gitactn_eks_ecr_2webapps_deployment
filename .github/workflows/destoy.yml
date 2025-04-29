@@ -44,7 +44,7 @@ jobs:
       - name: Terraform Destroy
         working-directory: ./terraform
         run: |
-          terraform destroy -auto-approve
+          terraform destroy -auto-approve -var="web_image1=${WEB_IMAGE1}" -var="web_image2=${WEB_IMAGE2}"
           env:
             AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
             AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

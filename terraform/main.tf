@@ -349,7 +349,7 @@ resource "aws_iam_openid_connect_provider" "oidc" {
 
 resource "aws_iam_policy" "alb_controller_policy" {
   name   = "AWSLoadBalancerControllerIAMPolicy"
-  policy = file("/iam_policy_alb_controller.json")
+  policy = file("${path.module}/iam_policy_alb_controller.json")
 }
 
 resource "aws_iam_role" "alb_controller" {

@@ -371,11 +371,11 @@ resource "aws_iam_role" "alb_controller" {
       Action = "sts:AssumeRoleWithWebIdentity",
       Effect = "Allow",
       Principal = {
-        Federated = data.aws_iam_openid_connect_provider.oidc.arn
-      },
+        Federated = aws_iam_openid_connect_provider.oidc.arn
+      },  
       Condition = {
         StringEquals = {
-          "${replace(data.aws_iam_openid_connect_provider.oidc.url, "https://", "")}:sub" = "system:serviceaccount:kube-system:aws-load-balancer-controller"
+          "${replace(aws_iam_openid_connect_provider.oidc.url, "https://", "")}:sub" = "system:serviceaccount:kube-system:aws-load-balancer-controller"
         }
       }
     }]

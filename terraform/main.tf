@@ -21,6 +21,7 @@ resource "aws_subnet" "public" {
     Name                                        = "${var.cluster_name}-public-${count.index}"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     "kubernetes.io/role/alb"                    = "1"
+    "kubernetes.io/role/elb" = "1" 
   }
 }
 
@@ -34,6 +35,7 @@ resource "aws_subnet" "private" {
     Name                                        = "${var.cluster_name}-private-${count.index}"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     "kubernetes.io/role/internal-alb"           = "1"
+    "kubernetes.io/role/internal-elb" = "1"
   }
 }
 

@@ -20,7 +20,7 @@ resource "aws_subnet" "public" {
   tags = {
     Name                                        = "${var.cluster_name}-public-${count.index}"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-    "kubernetes.io/role/elb"                    = "1"
+    "kubernetes.io/role/alb"                    = "1"
   }
 }
 
@@ -33,13 +33,13 @@ resource "aws_subnet" "private" {
   tags = {
     Name                                        = "${var.cluster_name}-private-${count.index}"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-    "kubernetes.io/role/internal-elb"           = "1"
+    "kubernetes.io/role/internal-alb"           = "1"
   }
 }
 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
- 
+  
   tags = {
     Name = "${var.cluster_name}/igw"
   }

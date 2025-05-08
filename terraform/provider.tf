@@ -37,9 +37,6 @@ data "tls_certificate" "oidc_thumbprint" {
   url = aws_eks_cluster.eks.identity[0].oidc[0].issuer
 }
 
-data "aws_iam_openid_connect_provider" "oidc" {
-  url = aws_eks_cluster.eks.identity[0].oidc[0].issuer
-}
 
 # Add to provider.tf or main.tf
 provider "kubernetes" {

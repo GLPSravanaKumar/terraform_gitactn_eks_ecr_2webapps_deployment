@@ -10,4 +10,8 @@ output "cluster_endpoint" {
 output "service_loadbalancer_dns" {
   value = kubernetes_ingress_v1.webapp_ingress.status[0].load_balancer[0].ingress[0].hostname
   description = "The DNS name of the LoadBalancer"
+  depends_on = [
+    helm_release.alb_controller,
+    kubernetes_ingress_v1.webapp_ingress
+  ]
 }

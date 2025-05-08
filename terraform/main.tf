@@ -20,7 +20,7 @@ resource "aws_subnet" "public" {
   tags = {
     Name                                        = "${var.cluster_name}-public-${count.index}"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-    "kubernetes.io/role/elb"                    = "true"
+    "kubernetes.io/role/elb"                    = "1"
   }
 }
 
@@ -33,7 +33,7 @@ resource "aws_subnet" "private" {
   tags = {
     Name                                        = "${var.cluster_name}-private-${count.index}"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-    "kubernetes.io/role/internal-elb"           = "true"
+    "kubernetes.io/role/internal-elb"           = "1"
   }
 }
 
@@ -457,7 +457,7 @@ resource "kubernetes_ingress_v1" "webapp_ingress" {
             }
           }
         }
-        
+
         path {
           path     = "/webapp2"
           path_type = "Prefix"

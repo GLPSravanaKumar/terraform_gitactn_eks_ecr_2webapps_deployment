@@ -188,6 +188,15 @@ resource "aws_eks_node_group" "node_group" {
     min_size     = 1
   }
 
+  ami_type       = "AL2_x86_64"  # Amazon Linux 2
+  instance_types = ["t3.medium"]
+  disk_size      = 20
+
+  tags = {
+    "Name" = "${var.cluster_name}/node_group"
+    "kubernetes.io/cluster/${aws_eks_cluster.eks.name}" = "owned"
+  }
+
   depends_on = [
     aws_iam_role_policy_attachment.eks_worker_node_policy,
     aws_iam_role_policy_attachment.eks_cni_policy,
@@ -211,20 +220,20 @@ resource "kubernetes_deployment" "webapp1" {
     namespace = kubernetes_namespace.ns.metadata[0].name
     name = "glps-webapp1-deployment"
     labels = {
-      "webapp1" = "amazon"
+      "app" = "amazon"
     }
   }
   spec {
     replicas = 2
     selector {
       match_labels = {
-        "webapp1" = "amazon"
+        "app" = "amazon"
       }
     }
     template {
       metadata {
         labels = {
-          "webapp1" = "amazon"
+          "app" = "amazon"
         }
       }
       spec {
@@ -258,7 +267,7 @@ resource "kubernetes_service" "webapp1" {
   }
   spec {
     selector = {
-      "webapp1" = "amazon"
+      "app" = "amazon"
     }
     port {
       name        = "http"
@@ -277,20 +286,20 @@ resource "kubernetes_deployment" "webapp2" {
     namespace = kubernetes_namespace.ns.metadata[0].name
     name = "glps-webapp2-deployment"
     labels = {
-      "webapp2" = "Gvrkprasad"
+      "app" = "gvrkprasad"
     }
   }
   spec {
     replicas = 2
     selector {
       match_labels = {
-        "webapp2" = "Gvrkprasad"
+        "app" = "gvrkprasad"
       }
     }
     template {
       metadata {
         labels = {
-          "webapp2" = "Gvrkprasad"
+          "app" = "gvrkprasad"
         }
       }
       spec {
@@ -324,7 +333,7 @@ resource "kubernetes_service" "webapp2" {
   }
   spec {
     selector = {
-      "webapp2" = "Gvrkprasad"
+      "app" = "gvrkprasad"
     }
     port {
       name        = "http"
@@ -340,7 +349,7 @@ resource "kubernetes_service" "webapp2" {
 
 
 resource "aws_iam_openid_connect_provider" "oidc" {
-  url = data.aws_eks_cluster.eks.identity[0].oidc[0].issuer
+  url = aws_eks_cluster.eks.identity[0].oidc[0].issuer
 
   client_id_list = ["sts.amazonaws.com"]
 

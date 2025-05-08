@@ -437,7 +437,6 @@ resource "kubernetes_ingress_v1" "webapp_ingress" {
       "kubernetes.io/ingress.class"                     = "alb"
       "alb.ingress.kubernetes.io/scheme"                = "internet-facing"
       "alb.ingress.kubernetes.io/target-type"           = "ip"
-      "alb.ingress.kubernetes.io/group.name"            = "shared-lb"
       "alb.ingress.kubernetes.io/listen-ports"          = "[{\"HTTP\": 80}]"
     }
   }
@@ -458,6 +457,7 @@ resource "kubernetes_ingress_v1" "webapp_ingress" {
             }
           }
         }
+        
         path {
           path     = "/webapp2"
           path_type = "Prefix"

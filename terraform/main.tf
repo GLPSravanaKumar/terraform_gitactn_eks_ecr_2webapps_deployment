@@ -448,7 +448,7 @@ resource "kubernetes_ingress_v1" "webapp_ingress" {
     rule {
       http {
         path {
-          path     = "/webapp1/*"
+          path     = "/webapp1/"
           path_type = "Prefix"
           backend {
             service {
@@ -461,7 +461,7 @@ resource "kubernetes_ingress_v1" "webapp_ingress" {
         }
 
         path {
-          path     = "/webapp2/*"
+          path     = "/webapp2/"
           path_type = "Prefix"
           backend {
             service {

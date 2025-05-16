@@ -226,7 +226,7 @@ resource "kubernetes_deployment" "webapp1" {
     }
   }
   spec {
-    replicas = 2
+    replicas = 1
     selector {
       match_labels = {
         "app" = "amazon"
@@ -292,7 +292,7 @@ resource "kubernetes_deployment" "webapp2" {
     }
   }
   spec {
-    replicas = 2
+    replicas = 1
     selector {
       match_labels = {
         "app" = "gvrkprasad"
